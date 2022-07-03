@@ -1,0 +1,25 @@
+{
+  "name": "zhixu/phprpc",
+  "description": "zhixu框架，php版本rpc",
+  "type": "library",
+  "require": {
+    "php": ">=7.3.0",
+    "ext-sockets": "*",
+    "ext-json": "*"
+  },
+  "license": "GPL",
+  "autoload": {
+    "psr-4": {
+      "Zhixu\\Phprpc\\": "src/"
+    }
+  },
+  "authors": [
+    {
+      "name": "Billion"
+    }
+  ],
+  "minimum-stability": "dev",
+  "require-dev": {
+    "swoole/ide-helper": "@dev"
+  }
+}
