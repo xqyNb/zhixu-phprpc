@@ -37,7 +37,7 @@ class Message {
             $action = $data['a'] ?? false;
             $data = $data['d'] ?? false;
             // 判断四个参数都存在且key、data不是false
-            if ($controller && $action && $key !== false && $data !== false) {
+            if ($controller && $action && $data !== false) {
                 $message = new static();
                 $message->controller = $controller;
                 $message->action = $action;

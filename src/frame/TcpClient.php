@@ -74,6 +74,15 @@ class TcpClient {
         // 判断是否发送成功
         if ($length){ // 直接等待服务端发过来即可
 //            PrintTool::print("开始接受数据!");
+            // 判断客户端连接是否已断开
+            if ($this->socket->isClosed()){
+                PrintTool::print("[RPC Client] 断线重连... 接收数据!");
+                $result = $this->connectServer();
+                if (!$result){
+                    return $rpcResponse->setFail("重连失败!");
+                }
+            }
+
             // 接受服务器的响应消息
             $content = $this->socket->recv(4096,$this->timeout);
 //            PrintTool::print("接收到 content : $content");
@@ -81,15 +90,16 @@ class TcpClient {
             if ($content){
                 return RpcResponse::parseRpcResponse($content);
             }
-            return $rpcResponse->setFail("接收失败!");
+            return $rpcResponse->setFail("接收失败! content : $content");
         }
-        return $rpcResponse->setFail("发送失败!");
+        return $rpcResponse->setFail("发送失败!  length : $length");
     }
 
     // 发送消息给服务器
     public function sendMessageToServer(Message $msg): int {
         // 判断是否有连接或重连
         if ($this->socket === NULL || $this->socket->isClosed()){ // 重连服务器
+            PrintTool::print("[RPC Client] 断线重连... sendMessageToServer");
             $result = $this->connectServer();
             if (!$result){
                 return self::CONNECT_ERROR;

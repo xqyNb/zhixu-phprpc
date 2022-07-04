@@ -1,6 +1,12 @@
 ### zhixu框架 - php版本rpc
 ---
 
+> 安装
+
+```sh
+composer require zhixu/phprpc:dev-main
+```
+
 > 作者
   - Author : Billion  
   - Email : billionzx@qq.com
