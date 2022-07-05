@@ -9,9 +9,19 @@ namespace Zhixu\Phprpc\lib\PrintTool;
  */
 class PrintTool {
 
-    // 输出
+    private static $debug = true;
+
+    // 设置是否输出debug
+    public static function setDebug(bool $debug){
+        self::$debug = $debug;
+    }
+
+
+    // 输出信息
     public static function print(string $content){
-        echo $content.PHP_EOL;
+        if (self::$debug){
+            echo $content.PHP_EOL;
+        }
     }
 
 }

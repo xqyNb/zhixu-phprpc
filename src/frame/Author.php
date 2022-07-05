@@ -6,5 +6,5 @@ namespace Zhixu\Phprpc\frame;
 class Author {
     public $name = 'Billion';
     public $email = 'billionzx@qq.com';
-    public $license = 'GPL';
+    public $license = 'MIT';
 }

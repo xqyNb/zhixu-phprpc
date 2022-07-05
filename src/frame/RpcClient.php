@@ -31,6 +31,34 @@ class RpcClient {
         self::$config = $config;
         // 初始化连接池子
         self::iniPool();
+        // 维持心跳
+        go(function (){
+            self::heartBeat();
+        });
+    }
+
+    // 维持心跳
+    private static function heartBeat(){
+        $poolChannel = self::getPoolTcpClientChannel();
+        while (true){
+//            PrintTool::print("维持心跳...");
+            /** @var TcpClient */
+            $tcpClient = $poolChannel->pop();
+            $tcpClient->autoReConnect();
+            $length = $tcpClient->sendHeartBeat();
+            if (!$length){ // 没有连接 - 重新连一个
+                $tcpClient->close();
+                $tcpClient = new TcpClient(self::$config->serverIp, self::$config->serverPort);
+            }
+            // 连接放回去
+            $poolChannel->push($tcpClient);
+            // 根据算法来心跳
+            $channelLength = $poolChannel->length();
+            $sleepTime = 28 / $channelLength;
+
+            // 协程sleep
+            Coroutine::sleep($sleepTime);
+        }
     }
 
     // 自动defer
@@ -50,6 +78,10 @@ class RpcClient {
         // 从连接至中获取链接
         /** @var TcpClient */
         $tcpClient = $poolChannel->pop();
+        // 自动重连
+        $tcpClient->autoReConnect();
+
+        // 设置defer后置操作
         Coroutine::defer(function () use ($tcpClient, $poolChannel) {
             // 判断是否是够用了
             $length = $poolChannel->length();

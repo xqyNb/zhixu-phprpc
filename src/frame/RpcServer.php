@@ -22,6 +22,7 @@ class RpcServer {
     const STATUS_DATA_ERROR = -1;
     const STATUS_SERVER_NOT_EXIST = -2;
     const STATUS_SERVER_ACTION_NOT_EXIST = -3;
+    const STATUS_SERVER_ERROR = -4;
 
     private static $server;
     private static $serverIp;
@@ -52,7 +53,27 @@ class RpcServer {
                 /** @var RpcControllerInterface $rpcController */
                 $rpcController = self::$rpcServers[$serverName];
                 // 响应rpc
-                $rpcResponse = $rpcController->callRpcAction($msg->action, $msg->data);
+                // 捕捉异常
+                try {
+                    $rpcResponse = $rpcController->callRpcAction($msg->action, $msg->data);
+                }catch (\Throwable $th){
+                    $rpcResponse = new RpcResponse();
+                    $rpcResponse->status = self::STATUS_SERVER_ERROR;
+                    $rpcResponse->message = "服务器异常!";
+                    $data = [
+                        'file' => $th->getFile(),
+                        'line' => $th->getLine(),
+                        'code' => $th->getCode(),
+                        'msg' => $th->getMessage(),
+                    ];
+                    var_dump([
+                        'RPC Exception' => 'RPC 服务异常',
+                        'serverName' => $serverName,
+                        'detail' => $data,
+                    ]);
+                    // 把信息返回给客户端
+                    $rpcResponse->data = json_encode($data);
+                }
             } else { // 服务不存在
                 $rpcResponse->status = self::STATUS_SERVER_NOT_EXIST;
                 $rpcResponse->message = "服务不存在!";
@@ -120,6 +141,11 @@ class RpcServer {
             while (true) {
                 // 接受客户端发来的数据 - 超时1秒
                 $data = $conn->recv();
+                // 判断是否是心跳
+                if ($data == 1){
+                    continue;
+                }
+
                 // 判断是否连接出错
                 if ($data === '' || $data === false) {
                     $errCode = swoole_last_error();
